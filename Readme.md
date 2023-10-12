@@ -1,0 +1,2 @@
+[![Local](https://github.com/lucil/chessify/actions/workflows/local.yml/badge.svg)](https://github.com/lucil/chessify/actions/workflows/local.yml)
+[![codecov](https://codecov.io/gh/lucil/chessify/graph/badge.svg?token=PO9REHHFCK)](https://codecov.io/gh/lucil/chessify)
