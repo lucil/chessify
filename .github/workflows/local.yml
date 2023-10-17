@@ -38,7 +38,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: code-coverage-report
-        path: coverage.xml
+        path: cobertura.xml
     - name: Run clippy
       run: cargo clippy --verbose --all-targets --all-features -- -D warnings
     - name: Run rustfmt
