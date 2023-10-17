@@ -1,5 +1,8 @@
-use base64::encode;
+use std::collections::HashMap;
+
 use chessify::domain::Fen;
+use claims::assert_lt;
+use serde_json::Value;
 mod setup;
 
 #[tokio::test]
@@ -9,29 +12,49 @@ async fn fen_score_returns_200() {
     let response = execute_evaluate_score_request(fen_string).await;
 
     assert!(response.status().is_success());
-    let body = response.text().await.unwrap();
-    assert_eq!(body, fen_string);
 }
 
 #[tokio::test]
-async fn fen_score_returns_fen_string() {
-    let fen_string = "1r3rk1/p1q2ppp/5b2/8/8/1P2P1P1/P4PKP/3R1R2 w - - 0 22";
+async fn fen_score_returns_bad_request() {
+    let fen_string = "";
 
     let response = execute_evaluate_score_request(fen_string).await;
+
+    assert!(response.status().is_client_error());
+}
+
+#[tokio::test]
+async fn fen_score_returns_fen_string_and_score() {
+    let fen_string = "1r3rk1/p1q2ppp/5b2/8/8/1P2P1P1/P4PKP/3R1R2 w - - 0 22";
+    let response = execute_evaluate_score_request(fen_string).await;
     let body = response.text().await.unwrap();
-    assert_eq!(body, fen_string);
+
+    let evaluation_parsed: HashMap<String, Value> = serde_json::from_str(&body).unwrap();
+    assert_eq!(
+        evaluation_parsed.get("fen").unwrap().get("code").unwrap(),
+        fen_string
+    );
+
+    assert_lt!(
+        evaluation_parsed.get("score").unwrap().as_f64().unwrap(),
+        0.0
+    );
 }
 
 async fn execute_evaluate_score_request(fen_string: &str) -> reqwest::Response {
     let address = setup::spawn_app();
     let client = reqwest::Client::new();
-    let fen = Fen::new(fen_string).unwrap();
-    // Act
+    let mut fen_parameter = String::from("");
+    if !fen_string.is_empty() {
+        fen_parameter = Fen::new(fen_string).unwrap().encode();
+    }
+
     let response = client
         // Use the returned application address
-        .get(&format!("{}/fen/score/{}", &address, fen.encode()))
+        .get(&format!("{}/fen/score/{}", &address, fen_parameter))
         .send()
         .await
         .expect("Failed to execute request.");
+
     return response;
 }

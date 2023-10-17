@@ -1,33 +1,36 @@
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+use urlencoding;
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Fen {
-    //implement a field
     pub code: String,
 }
 
+#[derive(Debug)]
+pub enum FenError {
+    InvalidFen(String),
+    DecodingError(String),
+}
+
 impl Fen {
-    //implement new function
-    pub fn new(code: &str) -> Result<Fen, std::io::Error> {
+    pub fn new(code: &str) -> Result<Fen, FenError> {
         if code.trim().is_empty() {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "FEN string is empty",
-            ));
+            return Err(FenError::InvalidFen("FEN string is empty".to_string()));
         }
 
-        return Ok(Fen {
+        Ok(Fen {
             code: code.to_string(),
-        });
+        })
     }
 
-    //implement encode function
     pub fn encode(&self) -> String {
-        base64::encode(&self.code)
+        urlencoding::encode(&self.code).into_owned()
     }
 
-    //implement decode function
-    pub fn decode(encoded: String) -> String {
-        let decoded = base64::decode(encoded).unwrap();
-        String::from_utf8(decoded).unwrap()
+    pub fn decode(encoded: &str) -> Result<String, FenError> {
+        urlencoding::decode(encoded)
+            .map(|decoded| decoded.into_owned())
+            .map_err(|_| FenError::DecodingError("Failed to decode FEN string".to_string()))
     }
 }
 
@@ -51,20 +54,20 @@ mod tests {
     }
 
     #[test]
-    fn fen_gets_encoded_to_base64() {
+    fn fen_gets_encoded() {
         let fen = Fen::new("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR").unwrap();
         let encoded = fen.encode();
         assert_eq!(
             encoded,
-            "cm5icWtibnIvcHBwcHBwcHAvOC84LzgvOC9QUFBQUFBQUC9STkJRS0JOUg=="
+            "rnbqkbnr%2Fpppppppp%2F8%2F8%2F8%2F8%2FPPPPPPPP%2FRNBQKBNR"
         );
     }
 
     #[test]
-    fn fen_gets_decoded_from_base_64() {
+    fn fen_gets_decoded() {
         let fen = Fen::new("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR").unwrap();
         let encoded = fen.encode();
-        let decoded = Fen::decode(encoded);
+        let decoded = Fen::decode(&encoded).unwrap();
         assert_eq!(decoded, fen.code);
     }
 }
