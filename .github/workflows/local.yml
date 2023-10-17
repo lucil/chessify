@@ -10,8 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  checkout:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,12 +20,31 @@ jobs:
       with:
         toolchain: stable
         override: true
+  
+  install dependencies:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install stable toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: Install tarpaulin
+      run: cargo install cargo-tarpaulin
+      
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Install tarpaulin
-      run: cargo install cargo-tarpaulin
+
+  coverage:
+    runs-on: ubuntu-latest
     - name: Run cargo-tarpaulin
       run: cargo tarpaulin --verbose --out Xml
     - name: Upload to codecov.io
@@ -38,12 +56,19 @@ jobs:
       with:
         name: code-coverage-report
         path: cobertura.xml
+
+  linting:
+    runs-on: ubuntu-latest
     - name: Run clippy
       run: cargo clippy --verbose --all-targets --all-features -- -D warnings
     - name: Run rustfmt
       run: cargo fmt --verbose --all -- --check
+  security:
+    runs-on: ubuntu-latest
     - name: Run cargo audit
       run: cargo audit
+  documentation:
+    runs-on: ubuntu-latest
     - name: Run cargo doc
       run: cargo doc --verbose --no-deps
     - name: Archive documentation
