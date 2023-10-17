@@ -49,12 +49,10 @@ async fn execute_evaluate_score_request(fen_string: &str) -> reqwest::Response {
         fen_parameter = Fen::new(fen_string).unwrap().encode();
     }
 
-    let response = client
+    client
         // Use the returned application address
         .get(&format!("{}/fen/score/{}", &address, fen_parameter))
         .send()
         .await
-        .expect("Failed to execute request.");
-
-    response
+        .expect("Failed to execute request.")
 }
