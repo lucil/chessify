@@ -56,5 +56,5 @@ async fn execute_evaluate_score_request(fen_string: &str) -> reqwest::Response {
         .await
         .expect("Failed to execute request.");
 
-    return response;
+    response
 }
