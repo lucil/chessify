@@ -45,6 +45,7 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
+    steps:
     - name: Run cargo-tarpaulin
       run: cargo tarpaulin --verbose --out Xml
     - name: Upload to codecov.io
@@ -59,16 +60,20 @@ jobs:
 
   linting:
     runs-on: ubuntu-latest
+    steps:
     - name: Run clippy
       run: cargo clippy --verbose --all-targets --all-features -- -D warnings
     - name: Run rustfmt
       run: cargo fmt --verbose --all -- --check
+
   security:
     runs-on: ubuntu-latest
+    steps:
     - name: Run cargo audit
       run: cargo audit
   documentation:
     runs-on: ubuntu-latest
+    steps:
     - name: Run cargo doc
       run: cargo doc --verbose --no-deps
     - name: Archive documentation
