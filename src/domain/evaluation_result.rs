@@ -1,5 +1,4 @@
 use super::Fen;
-use mockall::automock;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -11,7 +10,7 @@ pub struct EvaluationResult {
 impl EvaluationResult {
     pub fn new(fen_code: &str, score: f32) -> Result<Self, String> {
         let fen = Fen::new(fen_code).map_err(|_| "Failed to create EvaluationResult: {:?}")?;
-        return Ok(EvaluationResult { fen, score });
+        Ok(EvaluationResult { fen, score })
     }
 }
 

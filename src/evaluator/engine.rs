@@ -18,3 +18,9 @@ impl StockfishEngine {
         StockfishEngine {}
     }
 }
+
+impl Default for StockfishEngine {
+    fn default() -> Self {
+        StockfishEngine::new()
+    }
+}
