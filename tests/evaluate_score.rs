@@ -7,26 +7,15 @@ const VALID_FEN_NEGATIVE: &str = "1r3rk1/p1q2ppp/5b2/8/8/1P2P1P1/P4PKP/3R1R2 w -
 const VALID_FEN_POSITIVE: &str = "8/6pk/1Qp2p1p/p1p5/2P5/P1B1PP1P/1P3nPK/1q6 w - - 1 31";
 
 #[tokio::test]
-async fn returns_200() {
-    let response = execute_evaluate_score_request(VALID_FEN_NEGATIVE).await;
-
-    assert_eq!(response.status(), 200);
-}
-
-#[tokio::test]
 async fn evaluate_score_returns_success_with_valid_fen() {
-    let fen_string = VALID_FEN_NEGATIVE;
-
-    let response = execute_evaluate_score_request(fen_string).await;
+    let response = execute_evaluate_score_request(VALID_FEN_NEGATIVE).await;
 
     assert!(response.status().is_success());
 }
 
 #[tokio::test]
 async fn evaluate_score_returns_bad_request_on_empty_fen() {
-    let fen_string = "";
-
-    let response = execute_evaluate_score_request(fen_string).await;
+    let response = execute_evaluate_score_request("").await;
 
     assert!(response.status().is_client_error());
 }

@@ -43,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install stockfish
+      run: sudo apt-get install stockfish
     - name: Install tarpaulin
       run: cargo install cargo-tarpaulin
   
