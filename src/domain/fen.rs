@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use urlencoding;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Fen {
     pub code: String,
 }

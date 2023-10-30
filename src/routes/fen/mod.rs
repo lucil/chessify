@@ -1,4 +1,3 @@
-mod evaluate_score;
+mod score;
 
-pub use evaluate_score::engine_evaluation;
-pub use evaluate_score::evaluate_fen;
+pub use score::*;

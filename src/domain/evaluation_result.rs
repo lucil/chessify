@@ -12,6 +12,10 @@ impl EvaluationResult {
         let fen = Fen::new(fen_code).map_err(|_| "Failed to create EvaluationResult: {:?}")?;
         Ok(EvaluationResult { fen, score })
     }
+
+    pub fn from_fen(fen: Fen, score: f32) -> Result<Self, String> {
+        Ok(EvaluationResult { fen, score })
+    }
 }
 
 #[cfg(test)]
