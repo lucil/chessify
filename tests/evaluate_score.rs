@@ -43,7 +43,7 @@ async fn evaluate_score_returns_fen_and_negative_score() {
     );
 
     let score = evaluation_parsed.get("score").unwrap().as_f64().unwrap();
-
+    println!("{:?}", score);
     assert!(score < -1.0);
     assert!(score > -10.0);
 }
@@ -59,6 +59,7 @@ async fn evaluate_score_returns_fen_and_positive_score() {
         VALID_FEN_POSITIVE
     );
     let score = evaluation_parsed.get("score").unwrap().as_f64().unwrap();
+    println!("{:?}", score);
     assert!(score > 1.0);
     assert!(score < 2.0);
 }
