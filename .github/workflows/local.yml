@@ -19,6 +19,8 @@ jobs:
       with:
         toolchain: stable
         override: true
+    - name: Install stockfish
+      run: sudo apt-get install stockfish
     - name: Build
       run: cargo build --verbose
     - name: Run tests
