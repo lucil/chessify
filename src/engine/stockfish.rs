@@ -63,7 +63,7 @@ impl Engine for Stockfish {
         stdout_thread.join().expect("Failed to join stdout thread");
         stdin_thread.join().expect("Failed to join stdin thread");
 
-        //let _ = child.kill();
+        let _ = child.kill();
 
         Arc::try_unwrap(output_vec)
             .expect("Failed to unwrap Arc")

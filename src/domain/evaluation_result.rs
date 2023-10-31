@@ -1,19 +1,20 @@
-use super::Fen;
+use super::{Fen, Score};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EvaluationResult {
     pub fen: Fen,
-    pub score: f32,
+    pub score: Score,
 }
 
 impl EvaluationResult {
-    pub fn new(fen_code: &str, score: f32) -> Result<Self, String> {
+    pub fn new(fen_code: &str, score: f64) -> Result<Self, String> {
         let fen = Fen::new(fen_code).map_err(|_| "Failed to create EvaluationResult: {:?}")?;
+        let score = Score::new(score);
         Ok(EvaluationResult { fen, score })
     }
 
-    pub fn from_fen(fen: Fen, score: f32) -> Result<Self, String> {
+    pub fn from_fen(fen: Fen, score: Score) -> Result<Self, String> {
         Ok(EvaluationResult { fen, score })
     }
 }
@@ -30,7 +31,7 @@ mod tests {
             evaluation_result.fen.code,
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
         );
-        assert_eq!(evaluation_result.score, 0.0);
+        assert_eq!(evaluation_result.score, Score::new(0.0));
     }
 
     #[test]

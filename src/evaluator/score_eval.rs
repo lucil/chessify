@@ -1,4 +1,4 @@
-use crate::domain::{EvaluationResult, Fen};
+use crate::domain::{EvaluationResult, Fen, Score};
 use crate::engine::{commands, Engine};
 
 pub trait ScoreEvaluator {
@@ -13,7 +13,7 @@ impl ScoreEvaluator for ScoreEval {
         let execution_result =
             engine.execute(vec![commands::position_fen(&fen), commands::go_depth(10)]);
 
-        let mut last_cp_score: Option<f32> = None;
+        let mut last_cp_score: Option<Score> = None;
 
         for line in execution_result.lines() {
             if let Some(score) = line.strip_prefix("info depth") {
@@ -23,15 +23,15 @@ impl ScoreEvaluator for ScoreEval {
                         .split_whitespace()
                         .next()
                         .unwrap()
-                        .parse::<f32>()
+                        .parse::<f64>()
                     {
-                        last_cp_score = Some(cp);
+                        last_cp_score = Some(Score::new(cp));
                     }
                 }
             }
         }
 
-        EvaluationResult::from_fen(fen, last_cp_score.unwrap() / 100.0)
+        EvaluationResult::from_fen(fen, last_cp_score.unwrap().normalise())
     }
 }
 
@@ -55,7 +55,7 @@ mod score_eval_tests {
         let score_eval = ScoreEval::new();
         let evaluation =
             score_eval.evaluate_score(&mocked_stockfish, Fen::new("some fen").unwrap());
-        assert_eq!(evaluation.unwrap().score, 2.0)
+        assert_eq!(evaluation.unwrap().score, Score::new(2.0))
     }
 
     #[test]
@@ -66,7 +66,7 @@ mod score_eval_tests {
         let score_eval = ScoreEval::new();
         let evaluation =
             score_eval.evaluate_score(&mocked_stockfish, Fen::new("some fen").unwrap());
-        assert_eq!(evaluation.unwrap().score, 0.5)
+        assert_eq!(evaluation.unwrap().score, Score::new(0.5))
     }
 
     fn score50cp() -> String {
