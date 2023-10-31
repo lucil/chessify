@@ -14,7 +14,7 @@ impl EvaluationResult {
         Ok(EvaluationResult { fen, score })
     }
 
-    pub fn from_fen(fen: Fen, score: Score) -> Result<Self, String> {
+    pub fn build(fen: Fen, score: Score) -> Result<Self, String> {
         Ok(EvaluationResult { fen, score })
     }
 }

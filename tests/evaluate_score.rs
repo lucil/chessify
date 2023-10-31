@@ -6,6 +6,22 @@ mod setup;
 const VALID_FEN_NEGATIVE: &str = "1r3rk1/p1q2ppp/5b2/8/8/1P2P1P1/P4PKP/3R1R2 w - - 0 22";
 const VALID_FEN_POSITIVE: &str = "8/6pk/1Qp2p1p/p1p5/2P5/P1B1PP1P/1P3nPK/1q6 w - - 1 31";
 
+async fn execute_evaluate_score_request(fen_string: &str) -> reqwest::Response {
+    let address = setup::spawn_app();
+    let client = reqwest::Client::new();
+    let fen_parameter = if !fen_string.is_empty() {
+        Fen::new(fen_string).unwrap().encode()
+    } else {
+        String::from("")
+    };
+
+    client
+        .get(&format!("{}/fen/score/{}", &address, fen_parameter))
+        .send()
+        .await
+        .expect("Failed to execute request.")
+}
+
 #[tokio::test]
 async fn evaluate_score_returns_success_with_valid_fen() {
     let response = execute_evaluate_score_request(VALID_FEN_NEGATIVE).await;
@@ -21,38 +37,25 @@ async fn evaluate_score_returns_bad_request_on_empty_fen() {
 }
 
 #[tokio::test]
-async fn evaluate_score_returns_fen_and_negative_score() {
-    let response = execute_evaluate_score_request(VALID_FEN_NEGATIVE).await;
-    let body = response.text().await.unwrap();
-
-    let evaluation_parsed: HashMap<String, Value> = serde_json::from_str(&body).unwrap();
-    assert_eq!(
-        evaluation_parsed.get("fen").unwrap().get("code").unwrap(),
-        VALID_FEN_NEGATIVE
-    );
-
-    let score = evaluation_parsed
-        .get("score")
-        .unwrap()
-        .get("value")
-        .unwrap()
-        .as_f64()
-        .unwrap();
-    println!("{:?}", score);
-    assert!(score < -5.0);
-    assert!(score > -15.0);
+async fn evaluate_score_returns_fen_and_score() {
+    evaluate_fen_and_score(VALID_FEN_NEGATIVE, -15.0, -5.0).await;
 }
 
 #[tokio::test]
 async fn evaluate_score_returns_fen_and_positive_score() {
-    let response = execute_evaluate_score_request(VALID_FEN_POSITIVE).await;
+    evaluate_fen_and_score(VALID_FEN_POSITIVE, 1.0, 5.0).await;
+}
+
+async fn evaluate_fen_and_score(fen_string: &str, min_score: f64, max_score: f64) {
+    let response = execute_evaluate_score_request(fen_string).await;
     let body = response.text().await.unwrap();
 
     let evaluation_parsed: HashMap<String, Value> = serde_json::from_str(&body).unwrap();
     assert_eq!(
         evaluation_parsed.get("fen").unwrap().get("code").unwrap(),
-        VALID_FEN_POSITIVE
+        fen_string
     );
+
     let score = evaluation_parsed
         .get("score")
         .unwrap()
@@ -61,22 +64,5 @@ async fn evaluate_score_returns_fen_and_positive_score() {
         .as_f64()
         .unwrap();
     println!("{:?}", score);
-    assert!(score > 1.0);
-    assert!(score < 5.0);
-}
-
-async fn execute_evaluate_score_request(fen_string: &str) -> reqwest::Response {
-    let address = setup::spawn_app();
-    let client = reqwest::Client::new();
-    let mut fen_parameter = String::from("");
-    if !fen_string.is_empty() {
-        fen_parameter = Fen::new(fen_string).unwrap().encode();
-    }
-
-    client
-        // Use the returned application address
-        .get(&format!("{}/fen/score/{}", &address, fen_parameter))
-        .send()
-        .await
-        .expect("Failed to execute request.")
+    assert!(score > min_score && score < max_score);
 }
