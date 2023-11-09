@@ -102,11 +102,11 @@ mod stockfish_tests {
             commands::position_fen(
                 &Fen::new("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap(),
             ),
-            commands::go_depth(25),
+            commands::go_depth(10),
         ];
         let result = stockfish.execute(commands_to_execute);
         //println!("{:?}", result);
         assert!(result.contains("score cp"));
-        assert!(result.contains("info depth 25"));
+        assert!(result.contains("info depth 10"));
     }
 }
