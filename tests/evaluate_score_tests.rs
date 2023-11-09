@@ -1,19 +1,14 @@
-use chessify::domain::Fen;
 use serde_json::Value;
 use std::collections::HashMap;
 mod setup;
 
-const VALID_FEN_NEGATIVE: &str = "1r3rk1/p1q2ppp/5b2/8/8/1P2P1P1/P4PKP/3R1R2 w - - 0 22";
 const VALID_FEN_POSITIVE: &str = "8/6pk/1Qp2p1p/p1p5/2P5/P1B1PP1P/1P3nPK/1q6 w - - 1 31";
+const VALID_FEN_NEGATIVE: &str = "1r3rk1/p1q2ppp/5b2/8/8/1P2P1P1/P4PKP/3R1R2 w - - 0 22";
 
 async fn execute_evaluate_score_request(fen_string: &str) -> reqwest::Response {
     let address = setup::spawn_app();
     let client = reqwest::Client::new();
-    let fen_parameter = if !fen_string.is_empty() {
-        Fen::new(fen_string).unwrap().encode()
-    } else {
-        String::from("")
-    };
+    let fen_parameter = urlencoding::encode(fen_string);
 
     client
         .get(&format!("{}/fen/score/{}", &address, fen_parameter))
@@ -37,7 +32,7 @@ async fn evaluate_score_returns_bad_request_on_empty_fen() {
 }
 
 #[tokio::test]
-async fn evaluate_score_returns_fen_and_score() {
+async fn evaluate_score_returns_fen_and_negative_score() {
     evaluate_fen_and_score(VALID_FEN_NEGATIVE, -15.0, -5.0).await;
 }
 
@@ -63,6 +58,5 @@ async fn evaluate_fen_and_score(fen_string: &str, min_score: f64, max_score: f64
         .unwrap()
         .as_f64()
         .unwrap();
-    println!("{:?}", score);
     assert!(score > min_score && score < max_score);
 }

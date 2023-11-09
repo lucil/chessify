@@ -1,9 +1,11 @@
 use mockall::automock;
-use std::io::{Read, Write};
+use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
-use std::sync::{Arc, Mutex};
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 use std::thread;
-use std::time::Duration;
+use tokio::time::Duration;
 
 pub trait Engine {
     fn execute(&self, commands: Vec<String>) -> String;
@@ -20,56 +22,48 @@ impl Engine for Stockfish {
             .stderr(Stdio::piped())
             .spawn()
             .expect("Failed to start Stockfish");
-        let output_vec: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
 
-        // Start a separate thread to read from the child process's output continuously
+        let mut child_stdin = child.stdin.take().expect("Child process has no stdin");
         let child_stdout = child.stdout.take().expect("Child process has no stdout");
 
-        let stdout_thread = {
-            let output_vec = Arc::clone(&output_vec);
-            thread::spawn(move || {
-                let mut output = String::new();
-                let mut child_stdout = child_stdout;
+        let buf_reader = BufReader::new(child_stdout);
+        let (tx, rx): (Sender<String>, Receiver<String>) = mpsc::channel();
 
-                loop {
-                    match child_stdout.read_to_string(&mut output) {
-                        Ok(0) => break, // End of output
-                        Ok(_) => {
-                            // Process 'output' as needed
-                            output_vec.lock().unwrap().push(output.clone());
-                            output.clear();
-                        }
-                        Err(_) => break, // Error reading
-                    }
+        let mut line = String::new();
+
+        let thread_tx = tx.clone();
+
+        let _ = thread::spawn(move || {
+            let mut buf_reader = buf_reader;
+
+            loop {
+                let _ = buf_reader.read_line(&mut line);
+
+                thread_tx.send(line.clone()).expect("Unable to send line");
+            }
+        });
+
+        let timeout = Duration::new(2, 0);
+        let mut output = String::new();
+        for command in commands {
+            println!("Sending {:?}", command);
+            child_stdin
+                .write_all(command.as_bytes())
+                .expect("Failed to write data to child");
+
+            loop {
+                let result = rx.recv_timeout(timeout);
+                if result.is_err() {
+                    break;
                 }
-            })
-        };
 
-        // Start a separate thread to write data to the child process's input continuously
-        let mut child_stdin = child.stdin.take().expect("Child process has no stdin");
-        let stdin_thread = {
-            let _output_vec = Arc::clone(&output_vec);
-            thread::spawn(move || {
-                for command in commands {
-                    child_stdin
-                        .write_all(command.as_bytes())
-                        .expect("Failed to write data to child");
-                    thread::sleep(Duration::from_millis(500)); // Sleep between writes
-                }
-            })
-        };
-
-        // Wait for the stdout and stdin threads to finish
-        stdout_thread.join().expect("Failed to join stdout thread");
-        stdin_thread.join().expect("Failed to join stdin thread");
+                output = result.unwrap();
+            }
+        }
 
         let _ = child.kill();
 
-        Arc::try_unwrap(output_vec)
-            .expect("Failed to unwrap Arc")
-            .into_inner()
-            .expect("Failed to get inner value")
-            .join("-")
+        output
     }
 }
 
@@ -108,10 +102,11 @@ mod stockfish_tests {
             commands::position_fen(
                 &Fen::new("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap(),
             ),
-            commands::go_depth(10),
+            commands::go_depth(25),
         ];
         let result = stockfish.execute(commands_to_execute);
-
+        //println!("{:?}", result);
         assert!(result.contains("score cp"));
+        assert!(result.contains("info depth 25"));
     }
 }
