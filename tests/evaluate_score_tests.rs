@@ -24,7 +24,7 @@ fn build_url(fen_string: &str) -> String {
 
 #[tokio::test]
 async fn evaluate_score_returns_success_with_valid_fen() {
-    let response = setup::execute_get(&build_url(&VALID_FEN_NEGATIVE)).await;
+    let response = setup::execute_get(&build_url(VALID_FEN_NEGATIVE)).await;
 
     assert!(response.status().is_success());
 }
