@@ -46,7 +46,6 @@ impl Engine for Stockfish {
         let timeout = Duration::new(2, 0);
         let mut output = String::new();
         for command in commands {
-            println!("Sending {:?}", command);
             child_stdin
                 .write_all(command.as_bytes())
                 .expect("Failed to write data to child");

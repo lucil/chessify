@@ -17,16 +17,21 @@ async fn execute_evaluate_score_request(fen_string: &str) -> reqwest::Response {
         .expect("Failed to execute request.")
 }
 
+fn build_url(fen_string: &str) -> String {
+    let fen_parameter = urlencoding::encode(fen_string);
+    format!("/fen/score/{}", fen_parameter)
+}
+
 #[tokio::test]
 async fn evaluate_score_returns_success_with_valid_fen() {
-    let response = execute_evaluate_score_request(VALID_FEN_NEGATIVE).await;
+    let response = setup::execute_get(&build_url(&VALID_FEN_NEGATIVE)).await;
 
     assert!(response.status().is_success());
 }
 
 #[tokio::test]
 async fn evaluate_score_returns_bad_request_on_empty_fen() {
-    let response = execute_evaluate_score_request("").await;
+    let response = setup::execute_get(&build_url("")).await;
 
     assert!(response.status().is_client_error());
 }
@@ -42,7 +47,7 @@ async fn evaluate_score_returns_fen_and_positive_score() {
 }
 
 async fn evaluate_fen_and_score(fen_string: &str, min_score: f64, max_score: f64) {
-    let response = execute_evaluate_score_request(fen_string).await;
+    let response = setup::execute_get(&build_url(fen_string)).await;
     let body = response.text().await.unwrap();
 
     let evaluation_parsed: HashMap<String, Value> = serde_json::from_str(&body).unwrap();

@@ -9,5 +9,16 @@ pub fn spawn_app() -> String {
         .port();
     let server = run(listener).expect("Failed to bind address");
     tokio::spawn(server);
+    println!("{:?}", port);
     format!("http://127.0.0.1:{}", port)
+}
+
+pub async fn execute_get(url: &str) -> reqwest::Response {
+    let address = spawn_app();
+    let client = reqwest::Client::new();
+    client
+        .get(&format!("{}{}", &address, url))
+        .send()
+        .await
+        .expect("Failed to execute request.")
 }
