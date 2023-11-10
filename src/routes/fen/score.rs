@@ -21,7 +21,7 @@ fn evaluate_score(engine: &impl Engine, fen: Fen) -> Result<EvaluationResult, St
 }
 
 #[cfg(test)]
-mod score_eval_tests {
+mod evaluate_score_tests {
     use super::*;
     use crate::domain::{Fen, Score};
     use crate::engine::MockStockfish;
