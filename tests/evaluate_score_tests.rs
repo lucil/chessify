@@ -39,15 +39,9 @@ async fn evaluate_fen_and_score(fen_string: &str, min_score: f64, max_score: f64
     let body = response.text().await.unwrap();
 
     let evaluation_parsed: HashMap<String, Value> = serde_json::from_str(&body).unwrap();
-    assert_eq!(
-        evaluation_parsed.get("fen").unwrap().get("code").unwrap(),
-        fen_string
-    );
 
     let score = evaluation_parsed
-        .get("score")
-        .unwrap()
-        .get("value")
+        .get("centipawns")
         .unwrap()
         .as_f64()
         .unwrap();

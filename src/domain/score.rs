@@ -3,12 +3,12 @@ use std::str::FromStr;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Score {
-    pub value: f64,
+    pub centipawns: f64,
 }
 
 impl Score {
     pub fn new(input: f64) -> Self {
-        Score { value: input }
+        Score { centipawns: input }
     }
     pub fn parse_string(input: &str) -> Result<Score, String> {
         let result = f64::from_str(input);
@@ -20,7 +20,7 @@ impl Score {
 
     pub fn normalise(&self) -> Self {
         Score {
-            value: self.value / 100.0,
+            centipawns: self.centipawns / 100.0,
         }
     }
 }
@@ -32,7 +32,7 @@ mod score_tests {
     #[test]
     fn new_score_is_created() {
         let score = Score::new(1.0);
-        assert_eq!(score.value, 1.0);
+        assert_eq!(score.centipawns, 1.0);
     }
 
     #[test]
@@ -40,7 +40,7 @@ mod score_tests {
         let string_value = "1.0";
         let score = Score::parse_string(string_value);
 
-        assert_eq!(score.unwrap().value, 1.0);
+        assert_eq!(score.unwrap().centipawns, 1.0);
     }
 
     #[test]
@@ -56,6 +56,6 @@ mod score_tests {
         let string_value = "50";
         let score = Score::parse_string(string_value);
         let normalised_score = score.unwrap().normalise();
-        assert_eq!(normalised_score.value, 0.5);
+        assert_eq!(normalised_score.centipawns, 0.5);
     }
 }
